@@ -1,5 +1,5 @@
 # Zero-day eval: Kali base + headless tooling + static analysis stack
-ARG BASE_IMAGE=kalilinux/kali-rolling
+ARG BASE_IMAGE=kalilinux/kali-last-release
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -34,7 +34,6 @@ RUN apt-get update && \
       qemu-user \
       qemu-user-static \
       z3 \
-      ghidra \
       nodejs \
       npm && \
     (apt-get install -y ctags || apt-get install -y universal-ctags || apt-get install -y exuberant-ctags || true) && \
@@ -57,6 +56,7 @@ ENV PATH="/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv venv --python python3 /app/.venv
 ENV PATH="/app/.venv/bin:/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv pip install --python /app/.venv/bin/python \
+      "protobuf==3.20.0" \
       "numpy>=1.26,<2" \
       neo4j \
       setuptools \
@@ -65,20 +65,12 @@ RUN uv pip install --python /app/.venv/bin/python \
       ROPGadget \
       lief \
       z3-solver \
-      pyghidra-mcp \
-      ghidramcp \
+      mcp \
+      requests \
       playwright \
-      "git+https://github.com/mrexodia/ida-pro-mcp.git"
-RUN if [ -x /usr/share/ghidra/support/analyzeHeadless ]; then \
-      ln -sf /usr/share/ghidra/support/analyzeHeadless /usr/local/bin/analyzeHeadless; \
-    fi
+      "git+https://github.com/ziyue-pan/pyghidra-mcp.git" \
+      "https://github.com/mrexodia/ida-pro-mcp/archive/refs/heads/main.zip"
 
-# --- ida-pro ---
-COPY --from=ghcr.io/opensage-agent/ida-pro:latest /opt/ida /opt/ida
-COPY --from=ghcr.io/opensage-agent/ida-pro:latest /opt/lumina /opt/lumina
-RUN cd /opt/ida && python idakeygen.py
-COPY --from=ghcr.io/opensage-agent/ida-pro:latest /root/ida.reg /root/.idapro/
-ENV PATH="/opt/ida:/opt/lumina:$PATH"
 
 # Best-effort radare2 source install fallback when apt package is unavailable.
 RUN if ! command -v r2 >/dev/null 2>&1; then \
@@ -87,8 +79,32 @@ RUN if ! command -v r2 >/dev/null 2>&1; then \
       ./sys/install.sh --without-pull --install && \
       rm -rf /tmp/radare2; \
     fi
+
 # --- Playwright ---
 RUN /app/.venv/bin/python -m playwright install chromium
 
-ENTRYPOINT []
+# --- ida-pro + ida-pro-mcp ---
+COPY --from=ghcr.io/opensage-agent/ida-pro:latest /opt/ida /opt/ida
+COPY --from=ghcr.io/opensage-agent/ida-pro:latest /opt/lumina /opt/lumina
+RUN cd /opt/ida && python idakeygen.py && \
+    cd idalib/python && pip install . && \
+    python py-activate-idalib.py -d /opt/ida
+COPY --from=ghcr.io/opensage-agent/ida-pro:latest /root/ida.reg /root/.idapro/
+ENV PATH="/opt/ida:/opt/lumina:$PATH"
+
+
+# --- ghidra + ghidra-mcp ---
+COPY --from=ghcr.io/opensage-agent/ghidra:latest /opt/ghidra /opt/ghidra
+COPY --from=ghcr.io/opensage-agent/ghidra:latest /build/target/GhidraMCP-*.jar /opt/GhidraMCP.jar
+
+# --- Entry ---
+COPY entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+
+# --- Expose MCP ports ---
+EXPOSE 8002
+EXPOSE 8003
+EXPOSE 8004
+
+ENTRYPOINT ["/root/entrypoint.sh"]
 WORKDIR /workspace

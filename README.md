@@ -10,12 +10,15 @@ configuration, and the main sandbox image used for challenge solving.
 - `agent/config.toml`: default model, sandbox, MCP, and plugin configuration.
 - `agent/main_sandbox/Dockerfile`: the main sandbox image with reversing,
   debugging, and exploitation tooling.
+- `agent/main_sandbox/entrypoint.sh`: starts the bundled binary-analysis MCP
+  services inside the main sandbox.
 
 ## Requirements
 
 This project expects an environment where the following are available:
 
 - Python and the dependencies required by the OpenSage runtime.
+- `uv` for installing developer tooling such as `pre-commit`.
 - The `opensage` Python package on `PYTHONPATH` or installed in the active
   environment.
 - Docker or another compatible sandbox backend for building and running the
@@ -30,6 +33,23 @@ Example:
 
 ```bash
 opensage web --agent ./agent
+```
+
+## Pre-commit
+
+Install `pre-commit` with `uv` and enable the local git hook:
+
+```bash
+cd sageagent-ctf
+uv tool install pre-commit
+pre-commit install
+```
+
+To run all configured checks manually:
+
+```bash
+cd sageagent-ctf
+pre-commit run --all-files
 ```
 
 ## Notes
