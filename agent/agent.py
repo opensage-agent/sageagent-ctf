@@ -53,7 +53,8 @@ from opensage.toolbox.general.dynamic_subagent import (
 def mk_agent(opensage_session_id: str):
     model = LiteLlm(
         model="claude-opus-4-6",
-        base_url="http://localhost:8082",
+        api_key=os.getenv("LITELLM_API_KEY"),
+        base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
         cache_control_injection_points=[
             {"location": "message", "role": "system"},  # Cache all system messages
             {"location": "message", "index": -2},  # Cache second-to-last message

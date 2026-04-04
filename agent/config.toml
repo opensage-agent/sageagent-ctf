@@ -27,7 +27,7 @@ host_shared_mem_dir = "${HOST_LONG_TERM_MEM_DIR}"
 
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
-project_relative_dockerfile_path = "agent/main_sandbox/Dockerfile"
+absolute_dockerfile_path = "agent/main_sandbox/Dockerfile"
 timeout = 600
 mcp_services = ["ida_pro_mcp", "pyghidra_mcp", "ghidra_mcp"]
 [sandbox.sandboxes.main.build_args]
