@@ -84,4 +84,5 @@ enabled = [
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
     "message_board_diff_plugin",
+    "image_injection_plugin",
 ]
