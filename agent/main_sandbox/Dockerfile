@@ -46,19 +46,21 @@ RUN apt-get -qq update && \
       libboost-dev \
       libncurses-dev \
       libreadline-dev \
-      libcrypt-dev \
-      apt-get -qq clean
+      libcrypt-dev && \
+      apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
 
 # --- uv / Python env ---
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 RUN mkdir -p /app
 RUN uv venv --python python3 /app/.venv
 ENV VIRTUAL_ENV=/app/.venv
-ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
 RUN uv pip install --python /app/.venv/bin/python \
       "protobuf==3.20.0" \
       "numpy>=1.26,<2" \
+      scipy \
       neo4j \
       setuptools \
       angr \
