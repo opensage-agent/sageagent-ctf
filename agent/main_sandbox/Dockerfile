@@ -71,6 +71,8 @@ RUN uv pip install --python /app/.venv/bin/python \
       mcp \
       requests \
       playwright \
+      pwntools \
+      chepy \
       "git+https://github.com/ziyue-pan/pyghidra-mcp.git" \
       "https://github.com/mrexodia/ida-pro-mcp/archive/refs/heads/main.zip"
 
