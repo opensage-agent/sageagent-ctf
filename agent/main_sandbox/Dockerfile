@@ -95,7 +95,7 @@ COPY --from=ghcr.io/opensage-agent/ghidra:latest /build/target/GhidraMCP-*.jar /
 
 # --- sagemath ---
 COPY --from=ghcr.io/opensage-agent/sagemath:latest /opt/sagemath /opt/sagemath
-ENV PATH="/opt/sagemath/bin:$PATH"
+ENV PATH="$PATH:/opt/sagemath/bin"
 
 # --- Entry ---
 COPY entrypoint.sh /root/entrypoint.sh
