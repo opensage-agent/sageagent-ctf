@@ -53,6 +53,7 @@ from opensage.toolbox.general.view_image import view_image
 
 def mk_agent(opensage_session_id: str):
     model = LiteLlm(
+        # model="claude-opus-4-6",
         model="claude-opus-4-6",
         api_key=os.getenv("LITELLM_API_KEY"),
         base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
@@ -64,8 +65,7 @@ def mk_agent(opensage_session_id: str):
     )
     gdb_toolset = get_gdb_toolset(opensage_session_id)
     ida_pro_toolset = get_ida_pro_toolset(opensage_session_id)
-    # pyghidra_toolset = get_pyghidra_toolset(opensage_session_id)
-    # ghidra_toolset = get_ghidra_toolset(opensage_session_id)
+    pyghidra_toolset = get_pyghidra_toolset(opensage_session_id)
 
     root_agent = OpenSageAgent(
         name="ctf_agent",
@@ -100,10 +100,9 @@ def mk_agent(opensage_session_id: str):
             gdb_toolset,
             # Binary Analysis Tools
             ida_pro_toolset,
-            # pyghidra_toolset,
-            # ghidra_toolset,
+            pyghidra_toolset,
         ],
-        enabled_skills=[],
+        enabled_skills=["mmp"],
     )
 
     return root_agent
