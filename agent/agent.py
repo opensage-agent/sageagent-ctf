@@ -50,10 +50,11 @@ from opensage.toolbox.general.dynamic_subagent import (
 )
 from opensage.toolbox.general.view_image import view_image
 
+from .writeup_agent.agent import create_writeup_agent_tool
+
 
 def mk_agent(opensage_session_id: str):
     model = LiteLlm(
-        # model="claude-opus-4-6",
         model="claude-opus-4-6",
         api_key=os.getenv("LITELLM_API_KEY"),
         base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
@@ -78,6 +79,16 @@ def mk_agent(opensage_session_id: str):
         (for example `ida_pro_mcp`, `pyghidra_mcp`, `ghidra_mcp`, `gdb_mcp`).
         Perform MCP actions inside those subagents rather than directly from the
         root agent.
+
+        Writeup memory: you have a `writeup_agent` tool backed by a cross-session
+        store at /mem/shared/writeups/ (indexed by WRITEUP.md).
+        - When you start a new challenge or get stuck, call `writeup_agent` in
+          `consult` mode with a brief description of what you are working on.
+          It returns relevant prior writeups and failure root causes.
+        - After finishing a challenge (success OR abandoned) and seen a writeup, call
+          `writeup_agent` in `recap` mode with the writeup and a pointer to
+          your trajectory. It will distill and persist the lesson for future
+          runs.
         """,
         tools=[
             agent_ensemble,
@@ -101,6 +112,7 @@ def mk_agent(opensage_session_id: str):
             # Binary Analysis Tools
             ida_pro_toolset,
             pyghidra_toolset,
+            create_writeup_agent_tool(opensage_session_id),
         ],
         enabled_skills=["mmp"],
     )
